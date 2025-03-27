@@ -1,6 +1,7 @@
 """
 Common classes for Management and Search modules.
 """
+
 import requests
 
 try:
@@ -48,11 +49,11 @@ class DoofinderAuth(requests.auth.AuthBase):
 
     def __call__(self, r):
         if self.token is not None:
-            r.headers['Authorization'] = f'Token {self.token}'
+            r.headers["Authorization"] = f"Token {self.token}"
         if self.dfmaster_token is not None:
-            r.headers['dfmastertoken'] = self.dfmaster_token
+            r.headers["dfmastertoken"] = self.dfmaster_token
         if self.dfusername is not None:
-            r.headers['dfusername'] = self.dfusername
+            r.headers["dfusername"] = self.dfusername
         return r
 
 
@@ -65,20 +66,34 @@ class APIClient:
     child API Client should implement `_handle_response_error`. That method
     takes the response error and raises the corresponding exception.
     """
-    ALLOWED_REQUEST_OPTS = ('allow_redirects', 'cert', 'proxies', 'stream',
-                            'timeout', 'verify')
+
+    ALLOWED_REQUEST_OPTS = (
+        "allow_redirects",
+        "cert",
+        "proxies",
+        "stream",
+        "timeout",
+        "verify",
+    )
 
     def __init__(self, **kwargs):
-        dfmaster_token = (
-            kwargs.get('_dfmaster_token') or pydoof._dfmaster_token
-        )
-        token = kwargs.get('token') or pydoof.token
-        dfusername = kwargs.get('_dfusername')
+        # Add default value for _dfmaster_token if it doesn't exist in pydoof module
+        try:
+            dfmaster_token = kwargs.get("_dfmaster_token") or pydoof._dfmaster_token
+        except AttributeError:
+            dfmaster_token = kwargs.get("_dfmaster_token") or None
+
+        try:
+            token = kwargs.get("token") or pydoof.token
+        except AttributeError:
+            token = kwargs.get("token") or None
+
+        dfusername = kwargs.get("_dfusername")
 
         self.authentication = DoofinderAuth(
             token=token, dfmaster_token=dfmaster_token, dfusername=dfusername
         )
-        self.headers = {'User-Agent': 'doofinder-api-client/python'}
+        self.headers = {"User-Agent": "doofinder-api-client/python"}
         self.request_opts = {
             k: v for k, v in kwargs.items() if k in self.ALLOWED_REQUEST_OPTS
         }
@@ -88,24 +103,24 @@ class APIClient:
         try:
             response = self.session.request(
                 method,
-                url=f'{self.host}{url}',
+                url=f"{self.host}{url}",
                 params=query_params,
                 json=json,
                 headers=self.headers,
                 auth=self.authentication,
-                **self.request_opts
+                **self.request_opts,
             )
         except Exception as exc:
             raise APIConnectionError(
                 message="Unexpected error communicating with Doofinder.",
-                original_exc=exc
+                original_exc=exc,
             )
 
         if not 200 <= response.status_code < 300:
             err = self._handle_response_error(response)
             raise err
 
-        if self.request_opts.get('stream', False):
+        if self.request_opts.get("stream", False):
             response_body = response.iter_content(chunk_size=None)
         else:
             try:
@@ -115,16 +130,16 @@ class APIClient:
         return response_body
 
     def get(self, url, query_params=None):
-        return self.request('GET', url, query_params)
+        return self.request("GET", url, query_params)
 
     def delete(self, url, query_params=None):
-        return self.request('DELETE', url, query_params)
+        return self.request("DELETE", url, query_params)
 
     def post(self, url, json=None, query_params=None):
-        return self.request('POST', url, query_params, json)
+        return self.request("POST", url, query_params, json)
 
     def put(self, url, json=None, query_params=None):
-        return self.request('PUT', url, query_params, json)
+        return self.request("PUT", url, query_params, json)
 
     def patch(self, url, json=None, query_params=None):
-        return self.request('PATCH', url, query_params, json)
+        return self.request("PATCH", url, query_params, json)
