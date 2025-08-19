@@ -49,12 +49,16 @@ class Scroll:
         return params
 
     def new(self):
-        scroll_page = self.api_client.get(self.__get_url(self.hashid, self.name), self._query_params)
+        scroll_page = self.api_client.get(
+            self.__get_url(self.hashid, self.name), self._query_params
+        )
         self.scroll_id = scroll_page["scroll_id"]
         return scroll_page
 
     def next(self):
-        return self.api_client.get(self.__get_url(self.hashid, self.name), self._query_params)
+        return self.api_client.get(
+            self.__get_url(self.hashid, self.name), self._query_params
+        )
 
 
 def _get_items_url(hashid, name, temp=False):

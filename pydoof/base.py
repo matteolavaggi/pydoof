@@ -132,8 +132,8 @@ class APIClient:
     def get(self, url, query_params=None):
         return self.request("GET", url, query_params)
 
-    def delete(self, url, query_params=None):
-        return self.request("DELETE", url, query_params)
+    def delete(self, url, query_params=None, json=None):
+        return self.request("DELETE", url, query_params, json)
 
     def post(self, url, json=None, query_params=None):
         return self.request("POST", url, query_params, json)
